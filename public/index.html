@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Automated llms.txt Generator</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f8fb;
+        --surface: #ffffff;
+        --border: #dfe3ea;
+        --text: #0f172a;
+        --muted: #475569;
+        --accent: #4f46e5;
+        --accent-strong: #4338ca;
+        --success: #136c35;
+        --danger: #b42318;
+        --warning: #b54708;
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --space-1: 8px;
+        --space-2: 12px;
+        --space-3: 16px;
+        --space-4: 24px;
+      }
+      body {
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        max-width: 1040px;
+        margin: 40px auto 72px;
+        padding: 0 var(--space-3);
+        background: var(--bg);
+        color: var(--text);
+      }
+      form {
+        display: flex;
+        gap: 10px;
+        align-items: start;
+        flex-direction: column;
+        margin-bottom: var(--space-3);
+      }
+      h1 {
+        margin: 0 0 var(--space-1);
+      }
+      .subhead {
+        margin: 0 0 var(--space-4);
+      }
+      main {
+        display: grid;
+        gap: var(--space-3);
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: var(--space-4);
+        background: var(--surface);
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+      }
+      .field label {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      input[type="text"],
+      input[type="number"],
+      select {
+        padding: 10px;
+        border-radius: var(--radius-sm);
+        border: 1px solid #bcc5d3;
+        background: #fff;
+        color: var(--text);
+      }
+      input:focus-visible,
+      select:focus-visible,
+      button:focus-visible,
+      details summary:focus-visible,
+      [role="tab"]:focus-visible {
+        outline: 3px solid #c7d2fe;
+        outline-offset: 1px;
+        border-color: var(--accent);
+      }
+      button {
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        margin-top: 24px;
+      }
+      .btn-primary:hover {
+        background: var(--accent-strong);
+      }
+      .btn-secondary {
+        background: #fff;
+        border-color: #c5cfde;
+        color: var(--text);
+      }
+      button[disabled] {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .row {
+        display: flex;
+        gap: var(--space-2);
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .badge {
+        display: inline-flex;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid #d8deea;
+        background: #f8faff;
+        font-size: 0.82rem;
+        color: #344054;
+      }
+      details {
+        margin-top: var(--space-2);
+        border-top: 1px solid var(--border);
+        padding-top: var(--space-2);
+      }
+      details summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+      fieldset {
+        border: 0;
+        margin: var(--space-2) 0 0;
+        padding: 0;
+      }
+      legend {
+        font-size: 0.9rem;
+        color: var(--muted);
+        margin-bottom: var(--space-1);
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: var(--space-2);
+      }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 20px;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .error {
+        color: var(--danger);
+        margin-top: var(--space-1);
+      }
+      .status {
+        min-height: 20px;
+        margin-top: var(--space-2);
+      }
+      .summary-grid {
+        margin-top: var(--space-3);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: var(--space-2);
+      }
+      .metric {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: var(--space-2);
+        background: #fbfcff;
+      }
+      .metric-title {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .metric-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
+      .tabs {
+        margin-top: var(--space-3);
+      }
+      .tablist {
+        display: flex;
+        gap: var(--space-1);
+        border-bottom: 1px solid var(--border);
+      }
+      .tab {
+        background: transparent;
+        border-radius: 10px 10px 0 0;
+        border: 1px solid transparent;
+        border-bottom: 0;
+        color: var(--muted);
+      }
+      .tab[aria-selected="true"] {
+        color: var(--text);
+        background: #fff;
+        border-color: var(--border);
+      }
+      .tabpanel {
+        display: none;
+        border: 1px solid var(--border);
+        border-top: 0;
+        border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+        padding: var(--space-3);
+        background: #fff;
+      }
+      .tabpanel.active {
+        display: block;
+      }
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: var(--space-2);
+        min-height: 260px;
+        background: #fdfdff;
+        overflow: auto;
+      }
+      .toolbar {
+        display: flex;
+        gap: var(--space-2);
+        margin-top: var(--space-2);
+      }
+      #report {
+        margin: 0;
+        padding-left: 20px;
+      }
+      .ok {
+        color: var(--success);
+      }
+      .fail {
+        color: var(--warning);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        padding: 8px 6px;
+        vertical-align: top;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .empty {
+        color: var(--muted);
+        border: 1px dashed #cad2df;
+        border-radius: var(--radius-sm);
+        padding: var(--space-3);
+      }
+      @media (max-width: 680px) {
+        form {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Automated llms.txt Generator</h1>
+    <p class="muted subhead">
+      Enter a website URL to crawl key pages and generate a spec-aligned <code>llms.txt</code>.
+    </p>
+
+    <main>
+      <section class="card" aria-labelledby="generator-title">
+        <h2 id="generator-title">Step 1: Website input</h2>
+        <p class="muted">
+          Enter a domain like <code>stanford.edu</code>. HTTPS is added automatically.
+        </p>
+
+        <form id="form">
+          <div class="field">
+            <label for="url">Website URL</label>
+            <input
+              id="url"
+              type="text"
+              name="url"
+              placeholder="stanford.edu"
+              required
+              aria-describedby="url-help"
+            />
+            <small id="url-help" class="muted">No protocol needed. Example: <code>docs.example.com</code>.</small>
+          </div>
+          <button id="submit" class="btn-primary" type="submit">Generate</button>
+        </form>
+
+        <div class="row">
+          <span class="badge">Default: Hybrid discovery</span>
+          <span class="badge">Default: Max 30 pages</span>
+          <span class="badge">Default: Depth 2</span>
+        </div>
+
+        <details>
+          <summary>Advanced crawl settings</summary>
+          <fieldset>
+            <legend>Tune scope for large or specialized sites</legend>
+            <div class="controls">
+              <div class="field">
+                <label for="discoveryMode">Discovery mode</label>
+                <select id="discoveryMode">
+                  <option value="hybrid" selected>Hybrid (sitemap + crawl)</option>
+                  <option value="sitemap">Sitemap only</option>
+                  <option value="crawl">Crawl only</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="maxPages">Max pages</label>
+                <input id="maxPages" type="number" min="5" max="100" value="30" />
+              </div>
+              <div class="field">
+                <label for="maxDepth">Max depth</label>
+                <input id="maxDepth" type="number" min="0" max="4" value="2" />
+              </div>
+              <div class="field">
+                <label for="includePaths">Include paths (comma separated)</label>
+                <input id="includePaths" type="text" placeholder="/docs,/api" />
+              </div>
+              <div class="field">
+                <label for="excludePaths">Exclude paths (comma separated)</label>
+                <input id="excludePaths" type="text" placeholder="/search,/privacy" />
+              </div>
+              <label class="check">
+                <input id="strictHost" type="checkbox" />
+                Same subdomain only
+              </label>
+            </div>
+          </fieldset>
+        </details>
+
+        <p id="status" class="muted status" aria-live="polite"></p>
+        <p id="error" class="error" role="alert" aria-live="assertive"></p>
+      </section>
+
+      <section class="card" aria-labelledby="results-title">
+        <h2 id="results-title">Step 2: Results and quality checks</h2>
+
+        <div class="summary-grid" id="summaryGrid" aria-live="polite">
+          <div class="metric">
+            <div class="metric-title">Pages scanned</div>
+            <div class="metric-value" id="metricPages">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-title">Validation score</div>
+            <div class="metric-value" id="metricValidation">0/0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-title">Discovery mode</div>
+            <div class="metric-value" id="metricMode">-</div>
+          </div>
+          <div class="metric">
+            <div class="metric-title">Generated for</div>
+            <div class="metric-value" id="metricSite">-</div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tablist" role="tablist" aria-label="Result tabs">
+            <button class="tab" id="tab-preview" role="tab" aria-selected="true" aria-controls="panel-preview" type="button">llms.txt Preview</button>
+            <button class="tab" id="tab-validation" role="tab" aria-selected="false" aria-controls="panel-validation" type="button">Validation</button>
+            <button class="tab" id="tab-pages" role="tab" aria-selected="false" aria-controls="panel-pages" type="button">Crawled pages</button>
+          </div>
+
+          <section id="panel-preview" class="tabpanel active" role="tabpanel" aria-labelledby="tab-preview">
+            <div id="outputEmpty" class="empty">Generated llms.txt will appear here after you run a crawl.</div>
+            <pre id="output" hidden></pre>
+            <div class="toolbar">
+              <button id="copy" class="btn-secondary" type="button" disabled>Copy</button>
+              <button id="download" class="btn-secondary" type="button" disabled>Download llms.txt</button>
+            </div>
+          </section>
+
+          <section id="panel-validation" class="tabpanel" role="tabpanel" aria-labelledby="tab-validation">
+            <p class="muted">Spec checks and quality indicators for generated output.</p>
+            <ul id="report" class="muted"></ul>
+          </section>
+
+          <section id="panel-pages" class="tabpanel" role="tabpanel" aria-labelledby="tab-pages">
+            <p class="muted">Top crawled pages used to build the output.</p>
+            <div class="empty" id="pagesEmpty">No crawl data yet.</div>
+            <table id="pagesTable" hidden>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>URL</th>
+                  <th>Category</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody id="pagesBody"></tbody>
+            </table>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById("form");
+      const input = document.getElementById("url");
+      const submit = document.getElementById("submit");
+      const output = document.getElementById("output");
+      const outputEmpty = document.getElementById("outputEmpty");
+      const statusEl = document.getElementById("status");
+      const errorEl = document.getElementById("error");
+      const reportEl = document.getElementById("report");
+      const copyBtn = document.getElementById("copy");
+      const downloadBtn = document.getElementById("download");
+      const metricPages = document.getElementById("metricPages");
+      const metricValidation = document.getElementById("metricValidation");
+      const metricMode = document.getElementById("metricMode");
+      const metricSite = document.getElementById("metricSite");
+      const pagesTable = document.getElementById("pagesTable");
+      const pagesBody = document.getElementById("pagesBody");
+      const pagesEmpty = document.getElementById("pagesEmpty");
+      const discoveryMode = document.getElementById("discoveryMode");
+      const maxPages = document.getElementById("maxPages");
+      const maxDepth = document.getElementById("maxDepth");
+      const includePaths = document.getElementById("includePaths");
+      const excludePaths = document.getElementById("excludePaths");
+      const strictHost = document.getElementById("strictHost");
+
+      let latestText = "";
+      let latestHost = "llms";
+      let latestPages = [];
+      const tabButtons = Array.from(document.querySelectorAll("[role='tab']"));
+      const tabPanels = Array.from(document.querySelectorAll("[role='tabpanel']"));
+
+      function setProgress(step) {
+        statusEl.textContent = step;
+      }
+
+      function activateTab(tabId) {
+        tabButtons.forEach((button) => {
+          const selected = button.id === tabId;
+          button.setAttribute("aria-selected", selected ? "true" : "false");
+        });
+        tabPanels.forEach((panel) => {
+          panel.classList.toggle("active", panel.getAttribute("aria-labelledby") === tabId);
+        });
+      }
+
+      function validationHint(id) {
+        if (id === "h1") return "Use a clear site title at the top.";
+        if (id === "summary") return "Add a short summary blockquote under the title.";
+        if (id === "sections") return "Group links into one or more H2 sections.";
+        if (id === "links") return "Use '- [Title](URL): optional note' list items.";
+        if (id === "duplicates") return "Remove repeated links to keep context concise.";
+        return "Review formatting against llmstxt.org.";
+      }
+
+      function renderReport(report) {
+        const checks = report?.checks || [];
+        const passed = checks.filter((check) => check.pass).length;
+        metricValidation.textContent = `${passed}/${checks.length}`;
+        reportEl.innerHTML = checks
+          .map((check) => {
+            const cls = check.pass ? "ok" : "fail";
+            const icon = check.pass ? "PASS" : "NEEDS WORK";
+            return `<li class="${cls}"><strong>${icon}</strong> - ${check.label}. <span class="muted">${validationHint(check.id)}</span></li>`;
+          })
+          .join("");
+      }
+
+      function renderPagesTable(pages) {
+        latestPages = pages || [];
+        pagesBody.innerHTML = latestPages
+          .slice(0, 40)
+          .map((page) => {
+            const safeTitle = (page.title || "Untitled").replace(/</g, "&lt;");
+            const safeUrl = page.url.replace(/</g, "&lt;");
+            return `<tr>
+              <td>${safeTitle}</td>
+              <td><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a></td>
+              <td>${page.category || "general"}</td>
+              <td>${Number.isFinite(page.score) ? page.score : "-"}</td>
+            </tr>`;
+          })
+          .join("");
+
+        const hasRows = latestPages.length > 0;
+        pagesTable.hidden = !hasRows;
+        pagesEmpty.hidden = hasRows;
+      }
+
+      tabButtons.forEach((button) => {
+        button.addEventListener("click", () => activateTab(button.id));
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        errorEl.textContent = "";
+        setProgress("Normalizing URL...");
+        submit.disabled = true;
+        copyBtn.disabled = true;
+        downloadBtn.disabled = true;
+        reportEl.innerHTML = "";
+        metricValidation.textContent = "0/0";
+        metricPages.textContent = "0";
+        metricSite.textContent = "-";
+        metricMode.textContent = discoveryMode.value;
+        output.hidden = true;
+        outputEmpty.hidden = false;
+        pagesTable.hidden = true;
+        pagesEmpty.hidden = false;
+
+        try {
+          setProgress("Reading sitemap and crawling pages...");
+          const response = await fetch("/api/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              url: input.value.trim(),
+              discoveryMode: discoveryMode.value,
+              maxPages: Number(maxPages.value),
+              maxDepth: Number(maxDepth.value),
+              includePaths: includePaths.value,
+              excludePaths: excludePaths.value,
+              strictHost: strictHost.checked
+            })
+          });
+
+          setProgress("Scoring pages and generating llms.txt...");
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || "Request failed");
+          }
+
+          latestText = data.llmsTxt;
+          const normalizedInput = /^https?:\/\//i.test(input.value)
+            ? input.value
+            : `https://${input.value}`;
+          latestHost = new URL(normalizedInput).hostname.replace(/^www\./, "");
+          output.textContent = latestText;
+          output.hidden = false;
+          outputEmpty.hidden = true;
+          metricPages.textContent = String(data.pageCount || 0);
+          metricSite.textContent = data.siteName || "-";
+          metricMode.textContent = discoveryMode.value;
+          renderReport(data.report);
+          renderPagesTable(data.pages || []);
+          setProgress(`Done. Generated from ${data.pageCount} pages for ${data.siteName}.`);
+          copyBtn.disabled = false;
+          downloadBtn.disabled = false;
+        } catch (error) {
+          errorEl.textContent = error.message;
+          statusEl.textContent = "";
+          reportEl.innerHTML = "";
+          output.textContent = "";
+          output.hidden = true;
+          outputEmpty.hidden = false;
+          pagesTable.hidden = true;
+          pagesEmpty.hidden = false;
+        } finally {
+          submit.disabled = false;
+        }
+      });
+
+      copyBtn.addEventListener("click", async () => {
+        if (!latestText) return;
+        await navigator.clipboard.writeText(latestText);
+        statusEl.textContent = "Copied llms.txt to clipboard.";
+      });
+
+      downloadBtn.addEventListener("click", () => {
+        if (!latestText) return;
+        const blob = new Blob([latestText], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${latestHost}-llms.txt`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+    </script>
+  </body>
+</html>
