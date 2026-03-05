@@ -361,10 +361,6 @@
             <div class="metric-value" id="metricPages">0</div>
           </div>
           <div class="metric">
-            <div class="metric-title">Validation score</div>
-            <div class="metric-value" id="metricValidation">0/0</div>
-          </div>
-          <div class="metric">
             <div class="metric-title">Discovery mode</div>
             <div class="metric-value" id="metricMode">-</div>
           </div>
@@ -377,7 +373,6 @@
         <div class="tabs">
           <div class="tablist" role="tablist" aria-label="Result tabs">
             <button class="tab" id="tab-preview" role="tab" aria-selected="true" aria-controls="panel-preview" type="button">llms.txt Preview</button>
-            <button class="tab" id="tab-validation" role="tab" aria-selected="false" aria-controls="panel-validation" type="button">Validation</button>
             <button class="tab" id="tab-pages" role="tab" aria-selected="false" aria-controls="panel-pages" type="button">Crawled pages</button>
           </div>
 
@@ -388,11 +383,6 @@
               <button id="copy" class="btn-secondary" type="button" disabled>Copy</button>
               <button id="download" class="btn-secondary" type="button" disabled>Download llms.txt</button>
             </div>
-          </section>
-
-          <section id="panel-validation" class="tabpanel" role="tabpanel" aria-labelledby="tab-validation">
-            <p class="muted">Spec checks and quality indicators for generated output.</p>
-            <ul id="report" class="muted"></ul>
           </section>
 
           <section id="panel-pages" class="tabpanel" role="tabpanel" aria-labelledby="tab-pages">
@@ -422,11 +412,9 @@
       const outputEmpty = document.getElementById("outputEmpty");
       const statusEl = document.getElementById("status");
       const errorEl = document.getElementById("error");
-      const reportEl = document.getElementById("report");
       const copyBtn = document.getElementById("copy");
       const downloadBtn = document.getElementById("download");
       const metricPages = document.getElementById("metricPages");
-      const metricValidation = document.getElementById("metricValidation");
       const metricMode = document.getElementById("metricMode");
       const metricSite = document.getElementById("metricSite");
       const pagesTable = document.getElementById("pagesTable");
@@ -457,28 +445,6 @@
         tabPanels.forEach((panel) => {
           panel.classList.toggle("active", panel.getAttribute("aria-labelledby") === tabId);
         });
-      }
-
-      function validationHint(id) {
-        if (id === "h1") return "Use a clear site title at the top.";
-        if (id === "summary") return "Add a short summary blockquote under the title.";
-        if (id === "sections") return "Group links into one or more H2 sections.";
-        if (id === "links") return "Use '- [Title](URL): optional note' list items.";
-        if (id === "duplicates") return "Remove repeated links to keep context concise.";
-        return "Review formatting against llmstxt.org.";
-      }
-
-      function renderReport(report) {
-        const checks = report?.checks || [];
-        const passed = checks.filter((check) => check.pass).length;
-        metricValidation.textContent = `${passed}/${checks.length}`;
-        reportEl.innerHTML = checks
-          .map((check) => {
-            const cls = check.pass ? "ok" : "fail";
-            const icon = check.pass ? "PASS" : "NEEDS WORK";
-            return `<li class="${cls}"><strong>${icon}</strong> - ${check.label}. <span class="muted">${validationHint(check.id)}</span></li>`;
-          })
-          .join("");
       }
 
       function renderPagesTable(pages) {
@@ -513,8 +479,6 @@
         submit.disabled = true;
         copyBtn.disabled = true;
         downloadBtn.disabled = true;
-        reportEl.innerHTML = "";
-        metricValidation.textContent = "0/0";
         metricPages.textContent = "0";
         metricSite.textContent = "-";
         metricMode.textContent = discoveryMode.value;
@@ -556,7 +520,6 @@
           metricPages.textContent = String(data.pageCount || 0);
           metricSite.textContent = data.siteName || "-";
           metricMode.textContent = discoveryMode.value;
-          renderReport(data.report);
           renderPagesTable(data.pages || []);
           setProgress(`Done. Generated from ${data.pageCount} pages for ${data.siteName}.`);
           copyBtn.disabled = false;
@@ -564,7 +527,6 @@
         } catch (error) {
           errorEl.textContent = error.message;
           statusEl.textContent = "";
-          reportEl.innerHTML = "";
           output.textContent = "";
           output.hidden = true;
           outputEmpty.hidden = false;
